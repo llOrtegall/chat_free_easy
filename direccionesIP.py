@@ -25,7 +25,7 @@ Usuario = os.getenv('USUARIO')
 Contrasena = os.getenv('CONTRASENA')
 
 for x, y in dirrecionesIP.items():
-  print("Se Revisará Teléfono: " + x + "Con Ip: " +IngresarIp+y)
+  print("Se Revisará Teléfono: " + x + " Con Ip: " +IngresarIp+y)
   
   ### TODO: Datos de ingreso a la página
   driver.get('http://'+IngresarIp+y+'/servlet?p=login&q=loginForm&jumpto=status')
