@@ -6,28 +6,29 @@ config = load_dotenv(".env")
 driver = webdriver.Chrome()
 
 dirrecionesIP = {
-"Desarrollo":	"172.20.1.67",
-"Tesoreria": "172.20.1.170",
-"Aux_Comercial": "172.20.1.66",
-"Cartera": "172.20.1.68",
-"Contabilidad" :"172.20.1.171",
-"Director de Oficina": "172.20.1.169",
-"Contabilidad": "172.20.1.124",
-"Auditoria Yumbo": "172.20.1.151",
-"Talonarios": "172.20.1.36",
-"Almacen":"172.20.1.176",
-"Gestion_Humana":"172.20.1.37",
-"Porteria": "172.20.1.49",
+  "Desarrollo": "67",
+  "Tesoreria": "170",
+  "Aux_Comercial": "66",
+  "Cartera": "68",
+  "Contabilidad" :"171",
+  "Director de Oficina": "169",
+  "Contabilidad": "124",
+  "Auditoria Yumbo": "151",
+  "Talonarios": "36",
+  "Almacen":"176",
+  "Gestion_Humana":"37",
+  "Porteria": "49",
 }
 
+IngresarIp = os.getenv('IPEMPRESA')
 Usuario = os.getenv('USUARIO')
 Contrasena = os.getenv('CONTRASENA')
 
 for x, y in dirrecionesIP.items():
-  print("Se Revisará Teléfono: " + x)
+  print("Se Revisará Teléfono: " + x + "Con Ip: " +IngresarIp+y)
   
   ### TODO: Datos de ingreso a la página
-  driver.get('http://'+y+'/servlet?p=login&q=loginForm&jumpto=status')
+  driver.get('http://'+IngresarIp+y+'/servlet?p=login&q=loginForm&jumpto=status')
   time.sleep(1) # esperar 1 seg para la pág
   user = driver.find_element("xpath", '/html/body/div/form/table/tbody/tr[3]/td[2]/input')
   password = driver.find_element("xpath", '/html/body/div/form/table/tbody/tr[4]/td[2]/input[1]')

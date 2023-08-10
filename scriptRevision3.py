@@ -5,7 +5,7 @@ config = load_dotenv(".env")
 
 driver = webdriver.Chrome()
 
-IngresarIp = os.getenv('IP')
+IngresarIp = os.getenv('IPEMPRESA')
 Usuario = os.getenv('USUARIO')
 Contrasena = os.getenv('CONTRASENA')
 
