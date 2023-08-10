@@ -146,5 +146,5 @@ for x, y in dirrecionesIP.items():
     except:
       print("Error Al Activar La Cuenta 1")
   else:
-    print("Teléfono: " +x+ " Con Ip: "+ y +" Se Encuentra En Estado OK")
+    print("Teléfono: " +x+ " Con Ip: "+IngresarIp+y+" Se Encuentra En Estado OK")
   print('=======================================================================================')
