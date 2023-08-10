@@ -1,5 +1,4 @@
-import time
-import os
+import time, os
 from selenium import webdriver
 from dotenv import load_dotenv
 config = load_dotenv(".env")
@@ -61,7 +60,7 @@ else:
   print("Las Lineas 1 y Linea 2 No Se Encuentran Desactivadas, Se Procede a Verficiar Estado")
   
 ### TODO: Este Código Activará La Cuenta, Cuando Reporte Un Error. 
-if(Acount_01.__contains__('Error de registo')):
+if(Acount_01.__contains__('Error de registo') and Acount_02.__contains__('Desactivado')):
   # ! ERROR (En Cuenta_01) ==> DEBEMOS ACTIVAR SEGUNDA CUENTA Y DESACTIVAR PRIMERA
   print("Cuenta # 1 => Tiene Estado: " + Acount_01 + ", Se Activará La Cuenta 2")
   try:
@@ -97,7 +96,7 @@ if(Acount_01.__contains__('Error de registo')):
     salir = driver.find_element("xpath", "/html/body/div/div[2]/div[2]/div/div/label").click()
   except:
     print("Error Al Activar La Cuenta 2")
-elif(Acount_02.__contains__('Error de registo')):
+elif(Acount_02.__contains__('Error de registo') and Acount_01.__contains__('Desactivado')):
   # ! ERROR (En Cuenta_02) ==> DEBEMOS ACTIVAR PRIMERA CUENTA Y DESACTIVAR SEGUNDA
   print("Cuenta_02 Tiene Estado: " + Acount_02 + ", Se Activará La Cuenta 1")
   try:
