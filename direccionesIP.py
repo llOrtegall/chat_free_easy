@@ -1,9 +1,10 @@
 import time, os
 from selenium import webdriver
 from dotenv import load_dotenv
+import sys
 config = load_dotenv(".env")
 
-driver = webdriver.Chrome()
+driver = webdriver.Edge()
 
 dirrecionesIP = {
   "Desarrollo": "67",
@@ -148,3 +149,6 @@ for x, y in dirrecionesIP.items():
   else:
     print("Teléfono: " +x+ " Con Ip: "+IngresarIp+y+" Se Encuentra En Estado OK")
   print('=======================================================================================')
+  
+
+sys.exit()
