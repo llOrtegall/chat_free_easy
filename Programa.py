@@ -1,6 +1,5 @@
 import time
 from selenium import webdriver
-from dotenv import load_dotenv
 import sys
 
 dirrecionesIP = {
@@ -18,7 +17,6 @@ dirrecionesIP = {
   "Porteria": "172.20.1.49",
 }
 
-config = load_dotenv(".env")
 driver = webdriver.Edge()
 
 Usuario = 'admin'
