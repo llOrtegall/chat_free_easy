@@ -67,7 +67,7 @@ for nameTelefono, ipTelefono in dirrecionesIP.items():
       
       ### TODO: Vamos a Estado
       cuenta = driver.find_element("xpath", "/html/body/div/div[2]/div[2]/ul/li[1]/div[2]/label").click()
-      time.sleep(1) # para que cargue estado
+      time.sleep(5) # para que cargue estado
       state01 = driver.find_element("xpath", "/html/body/div/div[3]/div[2]/table/tbody[7]/tr[2]/td[3]").text
       print("Cuenta 1 Activada Correctamente y El Estado Es: " + state01)
       salir = driver.find_element("xpath", "/html/body/div/div[2]/div[2]/div/div/label").click()
