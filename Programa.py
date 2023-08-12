@@ -136,5 +136,5 @@ while True:
     
   driver.close()
   
-  print('================= Revisión Terminada Se Volverá a Ejecutar En 10 min ====================')
+  print('================= Revisión Terminada Se Volverá a Ejecutar En 10 min ===================')
   time.sleep(600)
