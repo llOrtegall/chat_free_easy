@@ -12,8 +12,8 @@ dirrecionesIP = {
   "Auditoria_Yumbo": "172.20.1.151",
   "Talonarios": "172.20.1.36",
   "Almacen": "172.20.1.176",
-  "Gestion_Humana":"172.20.1.37",
-  "Tesoreria": "172.20.1.170"
+  "Tesoreria": "172.20.1.170",
+  "Gestion_Humana":"172.20.1.37"
 }
 
 while True:
