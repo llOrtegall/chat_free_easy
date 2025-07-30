@@ -10,7 +10,7 @@ export function SignOut() {
 				})
       }}
     >
-      <button type="submit" className="inline-flex items-center gap-2 rounded-md bg-foreground text-background px-3.5 py-2.5 text-sm font-medium shadow hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-foreground">Sign Out</button>
+      <button type="submit" className="bg-gray-200 px-2 py-1 rounded text-black cursor-pointer hover:bg-gray-300">Sign Out</button>
     </form>
   )
 }
