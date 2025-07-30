@@ -1,4 +1,4 @@
-import SignIn from "@/components/sign-in";
+import { SignInGoogle, SignInGitHub } from "@/components/sign-in";
 
 export default function Home() {
   return (
@@ -16,7 +16,8 @@ export default function Home() {
             <a href="#faq" className="hover:opacity-80">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
-            <SignIn />
+            <SignInGoogle />
+            <SignInGitHub />
           </div>
         </div>
       </header>
