@@ -1,6 +1,16 @@
 import { SignOut } from "@/components/log-out";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import Image from "next/image";
 
-  export default function Dashboard() {
+export default async function Dashboard() {
+  const session = await auth()
+
+  if (!session) {
+    // Si no hay sesión, redirigimos al Home
+    redirect("/")
+  }
+
   const conversations: { name: string; last: string; unread: number }[] = [
     { name: "Equipo Soporte", last: "¿En qué podemos ayudarte?", unread: 2 },
     { name: "Marketing", last: "Revisemos la campaña.", unread: 0 },
@@ -13,11 +23,24 @@ import { SignOut } from "@/components/log-out";
       <div className="mx-auto max-w-[1400px] h-[calc(100vh-0px)] grid grid-rows-[auto_1fr] md:grid-cols-[280px_1fr] md:grid-rows-1">
         {/* Sidebar */}
         <aside className="hidden md:flex md:flex-col border-r border-black/5 dark:border-white/10 bg-background/70 backdrop-blur">
+          <article className="flex items-center gap-2 p-4 border-b border-black/5 dark:border-white/10">
+            <div className="flex-shrink-0 w-[40px]">
+              <Image
+                className="rounded-full"
+                src={session.user?.image || "/avatar.png"}
+                alt={session.user?.name || "User"}
+                width={40}
+                height={40}
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="truncate text-sm font-semibold tracking-tight">{session.user?.name}</p>
+              <p className="truncate text-xs text-ellipsis" title={session.user?.email || ""}>{session.user?.email}</p>
+            </div>
+          </article>
           <div className="h-16 flex items-center justify-between px-4 border-b border-black/5 dark:border-white/10">
             <h2 className="text-sm font-semibold tracking-tight">Conversaciones</h2>
-            <button className="inline-flex items-center rounded-md bg-foreground text-background px-3 py-1.5 text-xs font-medium hover:opacity-90">
-              Nuevo chat
-            </button>
           </div>
           <div className="p-4 border-b border-black/5 dark:border-white/10">
             <label className="sr-only" htmlFor="search">Buscar</label>
@@ -45,7 +68,7 @@ import { SignOut } from "@/components/log-out";
               </a>
             ))}
           </nav>
-          <footer>
+          <footer className="p-4 border-t border-black/5 dark:border-white/10">
             <SignOut />
           </footer>
         </aside>
