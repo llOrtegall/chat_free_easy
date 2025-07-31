@@ -18,11 +18,17 @@
   "author": "Ivan Ortega Garzon",
   "license": "MIT",
   "dependencies": {
-    "express": "^5.1.0"
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.3.1",
+    "@types/ws": "^8.18.1",
+    "morgan": "^1.10.1",
     "tsx": "4.20.5",
     "typescript": "5.9.2"
   }
