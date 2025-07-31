@@ -4,6 +4,18 @@ import { useEffect, useState } from "react";
 
 const URL_WS = 'ws://localhost:4050/ws';
 
+interface UserDataWs {
+  id: string
+  name: string
+  email: string
+  image: string
+}
+
+interface MessageServerWs {
+  type: 'online_users'
+  data: UserDataWs[]
+}
+
 const listUsersConected = [
   {
     id: 1,
@@ -26,6 +38,7 @@ const listUsersConected = [
 ]
 
 export default function Chat({ name, email, image }: { name: string, email: string, image: string }) {
+  const [onlineUsers, setOnlineUsers] = useState<UserDataWs[]>([]);
 
   useEffect(() => {
     const wss = new WebSocket(URL_WS);
@@ -36,7 +49,14 @@ export default function Chat({ name, email, image }: { name: string, email: stri
     }
 
     wss.onmessage = (event) => {
-      console.log('Message from server:', event.data);
+      const message = JSON.parse(event.data.toString());
+      if (message instanceof Object && 'type' in message) {
+        const newData: MessageServerWs = message;
+        if (newData.type === 'online_users') {
+          const userWithoutMe = newData.data.filter(user => user.email !== email);
+          setOnlineUsers(userWithoutMe);
+        }
+      }
     }
 
     wss.onclose = () => {
@@ -57,7 +77,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
           <span className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-medium text-white shadow">{listUsersConected.length}</span>
         </div>
         <ul className="space-y-2 overflow-y-auto pr-1 max-h-[calc(100vh-140px)] [&_::-webkit-scrollbar]:w-2 [&_::-webkit-scrollbar-thumb]:rounded-full [&_::-webkit-scrollbar-thumb]:bg-zinc-300/50 hover:[&_::-webkit-scrollbar-thumb]:bg-zinc-400/60 dark:[&_::-webkit-scrollbar-thumb]:bg-zinc-700/50 dark:hover:[&_::-webkit-scrollbar-thumb]:bg-zinc-600/60">
-          {listUsersConected.map((user) => (
+          {onlineUsers.map((user) => (
             <li key={user.id}>
               <div className="group flex items-center gap-3 rounded-xl border border-transparent bg-white/60 p-2 transition-all hover:border-zinc-200 hover:bg-white dark:bg-zinc-900/50 dark:hover:border-zinc-800 dark:hover:bg-zinc-900">
                 <div className="relative">
