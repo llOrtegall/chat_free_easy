@@ -37,6 +37,15 @@ interface DataMessage {
   image: string;
 }
 
+interface DataNewMessage {
+  type: string
+  data: {
+    message: string;
+    sender: string;
+    receiver: string;
+  }
+}
+
 const getOnlineUsers = () =>
   [...wss.clients]
     .map(c => {
@@ -75,6 +84,29 @@ wss.on('connection', (ws: DataWs) => {
         ws.image = newData.image;
 
         notifyOnlineUsers();
+      }
+    }
+
+    if (message instanceof Object && 'type' in message) {
+      const newData: DataNewMessage = message;
+      if (newData.type === 'new_message') {
+        const { message, sender, receiver } = newData.data;
+
+        // send message to receiver
+        for (const client of wss.clients) {
+          const s = client as DataWs;
+          if (s.email === receiver) {
+            try {
+              client.send(JSON.stringify({
+                type: 'new_message',
+                data: { message, sender, receiver }
+              }));
+            }
+            catch {
+              console.log('Error sending message');
+            }
+          }
+        }
       }
     }
 
