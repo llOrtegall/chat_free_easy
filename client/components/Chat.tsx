@@ -1,5 +1,9 @@
 'use client';
 
+import { useEffect, useState } from "react";
+
+const URL_WS = 'ws://localhost:4050/ws';
+
 const listUsersConected = [
   {
     id: 1,
@@ -22,6 +26,28 @@ const listUsersConected = [
 ]
 
 export default function Chat({ name, email, image }: { name: string, email: string, image: string }) {
+
+  useEffect(() => {
+    const wss = new WebSocket(URL_WS);
+
+    wss.onopen = () => {
+      console.log('Connected to WebSocket server');
+      wss.send(JSON.stringify({ type: 'join', name, email, image }));
+    }
+
+    wss.onmessage = (event) => {
+      console.log('Message from server:', event.data);
+    }
+
+    wss.onclose = () => {
+      console.log('Disconnected from WebSocket server');
+    }
+
+    return () => {
+      wss.close();
+    }
+  }, [])
+
   return (
     <section className="flex h-[calc(100vh-80px)] w-full gap-4 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
       {/* Sidebar: usuarios conectados */}
