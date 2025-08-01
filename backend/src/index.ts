@@ -1,5 +1,6 @@
+import type { DataWs, DataMessage, DataNewMessage } from "./types/interfaces.d.ts";
 import express, { type Request, type Response } from "express";
-import WebSocket, { WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
 import { v4 as uuid } from "uuid";
 import morgan from "morgan";
 import cors from "cors";
@@ -22,29 +23,6 @@ const server = app.listen(PORT, () => {
 })
 
 const wss = new WebSocketServer({ server, path: '/ws' })
-
-interface DataWs extends WebSocket {
-  id?: string;
-  name?: string;
-  email?: string;
-  image?: string;
-}
-
-interface DataMessage {
-  type: string;
-  name: string;
-  email: string;
-  image: string;
-}
-
-interface DataNewMessage {
-  type: string
-  data: {
-    message: string;
-    sender: string;
-    receiver: string;
-  }
-}
 
 const getOnlineUsers = () =>
   [...wss.clients]
