@@ -1,6 +1,6 @@
 'use client';
 
-import { UserDataWs, MessageWs, MessageServerWs } from "../types/interfaces";
+import { UserDataWs, MessageWs, MessageServerWs, SaveStorage, StorageKey } from "../types/interfaces";
 import { useEffect, useRef, useState } from "react";
 import SelectUser from "./SelectUser";
 import Image from "next/image";
@@ -8,19 +8,21 @@ import Image from "next/image";
 const URL_WS = 'ws://localhost:4050/ws';
 
 // Helper functions for localStorage
-const getStorageKey = (userEmail: string, key: string) => `chat_${userEmail}_${key}`;
+function getStorageKey({ userEmail, key }: StorageKey) {
+  return `chat_${userEmail}_${key}`;
+}
 
-const saveToStorage = (userEmail: string, key: string, data: any) => {
+function saveToStorage({ userEmail, key, data }: SaveStorage) {
   try {
-    localStorage.setItem(getStorageKey(userEmail, key), JSON.stringify(data));
+    localStorage.setItem(getStorageKey({ userEmail, key }), JSON.stringify(data));
   } catch (error) {
     console.warn('Failed to save to localStorage:', error);
   }
 };
 
-const loadFromStorage = <T,>(userEmail: string, key: string, defaultValue: T): T => {
+function loadFromStorage<T>({ userEmail, key, defaultValue }: StorageKey & { defaultValue: T }): T {
   try {
-    const stored = localStorage.getItem(getStorageKey(userEmail, key));
+    const stored = localStorage.getItem(getStorageKey({ userEmail, key }));
     return stored ? JSON.parse(stored) : defaultValue;
   } catch (error) {
     console.warn('Failed to load from localStorage:', error);
@@ -34,22 +36,22 @@ export default function Chat({ name, email, image }: { name: string, email: stri
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<MessageWs[]>([]);
-  const [unreadByEmail, setUnreadByEmail] = useState<Record<string, number>>(() => 
-    loadFromStorage(email, 'unread', {})
+  const [unreadByEmail, setUnreadByEmail] = useState<Record<string, number>>(() =>
+    loadFromStorage({ userEmail: email, key: 'unread', defaultValue: {} })
   );
-  const [messagesByEmail, setMessagesByEmail] = useState<Record<string, MessageWs[]>>(() => 
-    loadFromStorage(email, 'messages', {})
+  const [messagesByEmail, setMessagesByEmail] = useState<Record<string, MessageWs[]>>(() =>
+    loadFromStorage({ userEmail: email, key: 'messages', defaultValue: {} })
   );
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const selectedUserRef = useRef<UserDataWs | null>(null);
 
   // Save to localStorage whenever messagesByEmail or unreadByEmail changes
   useEffect(() => {
-    saveToStorage(email, 'messages', messagesByEmail);
+    saveToStorage({ userEmail: email, key: 'messages', data: messagesByEmail });
   }, [messagesByEmail, email]);
 
   useEffect(() => {
-    saveToStorage(email, 'unread', unreadByEmail);
+    saveToStorage({ userEmail: email, key: 'unread', data: unreadByEmail });
   }, [unreadByEmail, email]);
 
   useEffect(() => {
@@ -109,7 +111,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
     return () => {
       try { wss.close(); } catch { /* noop */ }
     }
-  }, [])
+  }, [name, email, image])
 
   // Auto-scroll to the bottom when messages update
   useEffect(() => {
@@ -174,7 +176,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
             <li key={user.id} onClick={() => handleSelectUser(user)}>
               <div className="group flex items-center gap-3 rounded-xl border border-transparent bg-white/60 p-2 transition-all hover:border-zinc-200 hover:bg-white dark:bg-zinc-900/50 dark:hover:border-zinc-800 dark:hover:bg-zinc-900">
                 <div className="relative">
-                  <img
+                  <Image
                     src={user.image}
                     alt={user.name}
                     className="h-10 w-10 rounded-full object-cover ring-1 ring-zinc-200 transition-shadow group-hover:shadow-sm dark:ring-zinc-800"
