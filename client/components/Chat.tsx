@@ -7,16 +7,50 @@ import Image from "next/image";
 
 const URL_WS = 'ws://localhost:4050/ws';
 
+// Helper functions for localStorage
+const getStorageKey = (userEmail: string, key: string) => `chat_${userEmail}_${key}`;
+
+const saveToStorage = (userEmail: string, key: string, data: any) => {
+  try {
+    localStorage.setItem(getStorageKey(userEmail, key), JSON.stringify(data));
+  } catch (error) {
+    console.warn('Failed to save to localStorage:', error);
+  }
+};
+
+const loadFromStorage = <T,>(userEmail: string, key: string, defaultValue: T): T => {
+  try {
+    const stored = localStorage.getItem(getStorageKey(userEmail, key));
+    return stored ? JSON.parse(stored) : defaultValue;
+  } catch (error) {
+    console.warn('Failed to load from localStorage:', error);
+    return defaultValue;
+  }
+};
+
 export default function Chat({ name, email, image }: { name: string, email: string, image: string }) {
   const [onlineUsers, setOnlineUsers] = useState<UserDataWs[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserDataWs | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<MessageWs[]>([]);
-  const [unreadByEmail, setUnreadByEmail] = useState<Record<string, number>>({});
-  const [messagesByEmail, setMessagesByEmail] = useState<Record<string, MessageWs[]>>({});
+  const [unreadByEmail, setUnreadByEmail] = useState<Record<string, number>>(() => 
+    loadFromStorage(email, 'unread', {})
+  );
+  const [messagesByEmail, setMessagesByEmail] = useState<Record<string, MessageWs[]>>(() => 
+    loadFromStorage(email, 'messages', {})
+  );
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const selectedUserRef = useRef<UserDataWs | null>(null);
+
+  // Save to localStorage whenever messagesByEmail or unreadByEmail changes
+  useEffect(() => {
+    saveToStorage(email, 'messages', messagesByEmail);
+  }, [messagesByEmail, email]);
+
+  useEffect(() => {
+    saveToStorage(email, 'unread', unreadByEmail);
+  }, [unreadByEmail, email]);
 
   useEffect(() => {
     const wss = new WebSocket(URL_WS);
@@ -116,8 +150,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
     setSelectedUser(null);
     selectedUserRef.current = null;
     setMessages([]);
-    setUnreadByEmail({});
-    setMessagesByEmail({});
+    // Don't clear all data when closing conversation - keep localStorage intact
   }
 
   // Keep ref in sync with selectedUser changes
