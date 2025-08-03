@@ -1,8 +1,9 @@
 'use client';
 
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
 import { UserDataWs, MessageWs, MessageServerWs } from "../types/interfaces";
+import { useEffect, useRef, useState } from "react";
+import SelectUser from "./SelectUser";
+import Image from "next/image";
 
 const URL_WS = 'ws://localhost:4050/ws';
 
@@ -22,7 +23,6 @@ export default function Chat({ name, email, image }: { name: string, email: stri
     setWs(wss);
 
     wss.onopen = () => {
-      console.log('Connected to WebSocket server');
       wss.send(JSON.stringify({ type: 'join', name, email, image }));
     }
 
@@ -83,7 +83,6 @@ export default function Chat({ name, email, image }: { name: string, email: stri
   }, [messages]);
 
   const handleSendMessage = (message: string) => {
-    console.log(message);
     if (!selectedUser || message.trim() === '') return;
     ws?.send(JSON.stringify({
       type: 'new_message', data: {
@@ -102,7 +101,6 @@ export default function Chat({ name, email, image }: { name: string, email: stri
   }
 
   const handleSelectUser = (user: UserDataWs) => {
-    console.log(user);
     setSelectedUser(user);
     selectedUserRef.current = user;
     setMessages(messagesByEmail[user.email] || []);
@@ -112,6 +110,14 @@ export default function Chat({ name, email, image }: { name: string, email: stri
       const { [user.email]: _, ...rest } = prev;
       return rest;
     });
+  }
+
+  const handleCloseConversation = () => {
+    setSelectedUser(null);
+    selectedUserRef.current = null;
+    setMessages([]);
+    setUnreadByEmail({});
+    setMessagesByEmail({});
   }
 
   // Keep ref in sync with selectedUser changes
@@ -128,7 +134,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
           <span
             className="rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-medium text-white shadow">
             {onlineUsers.length}
-            </span>
+          </span>
         </div>
         <ul className="space-y-2 overflow-y-auto pr-1 max-h-[calc(100vh-140px)] [&_::-webkit-scrollbar]:w-2 [&_::-webkit-scrollbar-thumb]:rounded-full [&_::-webkit-scrollbar-thumb]:bg-zinc-300/50 hover:[&_::-webkit-scrollbar-thumb]:bg-zinc-400/60 dark:[&_::-webkit-scrollbar-thumb]:bg-zinc-700/50 dark:hover:[&_::-webkit-scrollbar-thumb]:bg-zinc-600/60">
           {onlineUsers.map((user) => (
@@ -167,12 +173,27 @@ export default function Chat({ name, email, image }: { name: string, email: stri
         {
           selectedUser ? (
             <section className="flex flex-col h-full rounded-2xl p-3 bg-gradient-to-b from-background/60 to-background/80 dark:from-zinc-950/60 dark:to-zinc-900/70">
-              <header className="border-b border-black/5 dark:border-white/10 p-2">
-                <div className="flex items-center gap-2">
-                  <Image src={selectedUser.image} alt={selectedUser.name} width={40} height={40} className="rounded-full" />
-                  <div>
-                    <p className="font-medium">{selectedUser.name}</p>
+              <header className="relative border-b border-black/5 dark:border-white/10 p-2">
+                <div className="pointer-events-none absolute inset-x-0 -top-px h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-70" aria-hidden />
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Image src={selectedUser.image} alt={selectedUser.name} width={40} height={40} className="rounded-full ring-2 ring-indigo-500/20" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900" />
                   </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold tracking-tight">{selectedUser.name}</p>
+                    <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{selectedUser.email}</p>
+                  </div>
+                  <button
+                    aria-label="Cerrar conversación"
+                    onClick={handleCloseConversation}
+                    className="cursor-pointer group ml-auto inline-flex items-center justify-center rounded-full bg-foreground/5 p-2 text-zinc-500 transition-all hover:bg-foreground/10 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 active:scale-95 dark:text-zinc-400 dark:hover:text-zinc-300"
+                    title="Cerrar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 transition-transform duration-200 group-hover:rotate-90">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                  </button>
                 </div>
               </header>
 
@@ -219,13 +240,7 @@ export default function Chat({ name, email, image }: { name: string, email: stri
               </footer>
             </section>
           ) : (
-            <div className="flex h-full items-center justify-center">
-              <div className="text-center">
-                <div className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 opacity-90 shadow-md" />
-                <h2 className="text-lg font-semibold tracking-tight text-zinc-800 dark:text-zinc-100">Selecciona un chat</h2>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Elige un usuario de la izquierda para comenzar a conversar.</p>
-              </div>
-            </div>
+            <SelectUser />
           )
         }
       </article>
