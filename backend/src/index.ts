@@ -1,5 +1,5 @@
 import express, { type Request, type Response } from 'express';
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket } from 'ws';
 import morgan from 'morgan';
 import cors from 'cors';
 
@@ -21,11 +21,41 @@ const server = app.listen(port, () => {
 
 const wss = new WebSocketServer({ server, path: '/api/ws' })
 
-wss.on('connection', (ws) => {
-  console.log('Client connected')
+// Cuando alguien se conecta
+wss.on('connection', (ws: WebSocket) => {
+  console.log('✅ Nueva conexión establecida');
+  
+  // Enviar mensaje de bienvenida
+  ws.send(JSON.stringify({
+    type: 'welcome',
+    message: '¡Hola! Conectado al servidor WebSocket'
+  }));
 
-  ws.on('message', (message) => {
-    console.log('Message from client:', message)
-    ws.send('Hello from server!')
-  })
-})
+  // Escuchar mensajes del cliente
+  ws.on('message', (data: Buffer) => {
+    try {
+      const message = JSON.parse(data.toString());
+      console.log('📨 Mensaje recibido:', message);
+      
+      // Responder al cliente
+      ws.send(JSON.stringify({
+        type: 'response',
+        message: `Servidor recibió: "${message.text}"`,
+        timestamp: new Date().toISOString()
+      }));
+      
+    } catch (error) {
+      console.error('❌ Error al procesar mensaje:', error);
+    }
+  });
+
+  // Cuando se cierra la conexión
+  ws.on('close', () => {
+    console.log('🔌 Conexión cerrada');
+  });
+
+  // Manejo de errores
+  ws.on('error', (error) => {
+    console.error('❌ Error WebSocket:', error);
+  });
+});
