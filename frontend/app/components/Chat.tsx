@@ -3,14 +3,14 @@
 import { useWebSocket } from '@/app/hooks/useWebSocket';
 import { useState } from 'react';
 
-export function Chat() {
+export function Chat({ email, name, image }: { email: string; name: string; image: string  }) {
   const [inputMsg, setInputMsg] = useState('');
   const {
     messages,
     clearMessages,
     sendMessage,
     connectionStatus
-  } = useWebSocket();
+  } = useWebSocket(email, name, image);
 
   // para enviar el mensaje
   const handleSendMessage = (e: React.FormEvent) => {
@@ -23,15 +23,15 @@ export function Chat() {
 
   const getStatusStyles = () => {
     switch (connectionStatus) {
-      case 'connected': 
+      case 'connected':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'connecting': 
+      case 'connecting':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'error': 
+      case 'error':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'disconnected': 
+      case 'disconnected':
         return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: 
+      default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -47,7 +47,7 @@ export function Chat() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-purple-900 p-4">
       <div className="max-w-4xl mx-auto h-screen flex flex-col">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-sm rounded-t-2xl shadow-lg border border-gray-200/50 p-6">
@@ -80,24 +80,21 @@ export function Chat() {
               </div>
             ) : (
               messages.map((msg, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`flex ${msg.user === 'Tú' ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${
-                    msg.user === 'Tú' 
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-l-2xl rounded-tr-2xl' 
+                  <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${msg.user === 'Tú'
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-l-2xl rounded-tr-2xl'
                       : 'bg-white border border-gray-200 text-gray-800 rounded-r-2xl rounded-tl-2xl shadow-sm'
-                  } p-4`}>
+                    } p-4`}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-semibold ${
-                        msg.user === 'Tú' ? 'text-blue-100' : 'text-gray-600'
-                      }`}>
+                      <span className={`text-xs font-semibold ${msg.user === 'Tú' ? 'text-blue-100' : 'text-gray-600'
+                        }`}>
                         {msg.user || 'Servidor'}
                       </span>
-                      <span className={`text-xs ${
-                        msg.user === 'Tú' ? 'text-blue-200' : 'text-gray-500'
-                      }`}>
+                      <span className={`text-xs ${msg.user === 'Tú' ? 'text-blue-200' : 'text-gray-500'
+                        }`}>
                         {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('es-ES', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -124,8 +121,8 @@ export function Chat() {
                   className="w-full px-4 py-3 text-gray-800 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                 />
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={connectionStatus !== 'connected' || !inputMsg.trim()}
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
               >
@@ -143,7 +140,7 @@ export function Chat() {
         {/* Actions Footer */}
         <div className="bg-white/80 backdrop-blur-sm rounded-b-2xl shadow-lg border border-gray-200/50 p-4">
           <div className="flex justify-center">
-            <button 
+            <button
               onClick={clearMessages}
               className="px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium"
             >
