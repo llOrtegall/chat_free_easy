@@ -19,30 +19,79 @@ const server = app.listen(port, () => {
   console.log(`Server running on port http://localhost:${port}`);
 })
 
+interface UserWs extends WebSocket {
+  email?: string;
+  name?: string;
+  image?: string;
+}
+
+interface JoinMessageData {
+  email: string;
+  name: string;
+  image: string;
+}
+
 const wss = new WebSocketServer({ server, path: '/api/ws' })
 
+function notifyOnlineUsers() {
+  const onlineUsers = [...wss.clients]
+    .filter((client): client is UserWs => {
+      return client.readyState === WebSocket.OPEN && 
+             'email' in client && 
+             'name' in client && 
+             'image' in client &&
+             client.email !== undefined &&
+             client.name !== undefined &&
+             client.image !== undefined;
+    })
+    .map((client) => ({
+      email: client.email!,
+      name: client.name!,
+      image: client.image!
+    }));
+
+  [...wss.clients].forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      try {
+        client.send(JSON.stringify({
+          type: 'onlineUsers',
+          data: onlineUsers
+        }));
+      } catch (error) {
+        console.error('❌ Error enviando notificación:', error);
+      }
+    }
+  });
+}
+
 // Cuando alguien se conecta
-wss.on('connection', (ws: WebSocket) => {
+wss.on('connection', (ws: UserWs, _req) => {
   console.log('✅ Nueva conexión establecida');
-  
-  // Enviar mensaje de bienvenida
-  ws.send(JSON.stringify({
-    type: 'welcome',
-    message: '¡Hola! Conectado al servidor WebSocket'
-  }));
 
   // Escuchar mensajes del cliente
   ws.on('message', (data: Buffer) => {
     try {
       const message = JSON.parse(data.toString());
-      console.log('📨 Mensaje recibido:', message);
-      
-      // Responder al cliente
-      ws.send(JSON.stringify({
-        type: 'response',
-        message: `Servidor recibió: "${message.text}"`,
-        timestamp: new Date().toISOString()
-      }));
+
+      if (message.type === 'join' && message.data) {
+        const { email, name, image } = message.data as JoinMessageData;
+        
+        // Validar que los datos requeridos estén presentes
+        if (email && name && image) {
+          ws.email = email;
+          ws.name = name;
+          ws.image = image;
+          
+          console.log(`👤 Usuario ${name} se unió al chat`);
+          
+          // Notificar a todos los clientes DESPUÉS de que el usuario haga join
+          notifyOnlineUsers();
+        } else {
+          console.error('❌ Datos de join incompletos:', message.data);
+        }
+      }
+
+      // Aquí puedes agregar otros tipos de mensajes (chat, etc.)
       
     } catch (error) {
       console.error('❌ Error al procesar mensaje:', error);
@@ -52,6 +101,8 @@ wss.on('connection', (ws: WebSocket) => {
   // Cuando se cierra la conexión
   ws.on('close', () => {
     console.log('🔌 Conexión cerrada');
+    // Notificar cambio en usuarios online cuando alguien se desconecta
+    notifyOnlineUsers();
   });
 
   // Manejo de errores
