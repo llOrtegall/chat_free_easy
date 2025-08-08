@@ -17,7 +17,7 @@ interface UseWebSocketReturn {
 
 const URL_WS = process.env.NEXT_PUBLIC_URL_WS || 'ws://localhost:4000/api/ws';
 
-export const useWebSocket = (): UseWebSocketReturn => {
+export const useWebSocket = (email: string, name: string, image: string): UseWebSocketReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' >('disconnected');
 
@@ -29,11 +29,16 @@ export const useWebSocket = (): UseWebSocketReturn => {
       setConnectionStatus('connecting');
       ws.current = new WebSocket(URL_WS);
 
+      // cuando se conecta un nuevo usuario
       ws.current.onopen = () => {
-        console.log('✅ Conectado al WebSocket');
+        ws.current?.send(JSON.stringify({
+          type: 'join',
+          data: { email, name, image }
+        }))
         setConnectionStatus('connected');
       };
 
+      // cuando recibe un mensaje del servidor ws
       ws.current.onmessage = (event) => {
         try {
           const data: Message = JSON.parse(event.data);
@@ -43,6 +48,7 @@ export const useWebSocket = (): UseWebSocketReturn => {
         }
       };
 
+      // cuando se cierra la conexión
       ws.current.onclose = () => {
         console.log('🔌 Conexión cerrada');
         setConnectionStatus('disconnected');
