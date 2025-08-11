@@ -1,5 +1,10 @@
-import { url } from 'inspector';
 import { useEffect, useRef, useState, useCallback } from 'react';
+
+interface User {
+  email: string;
+  name: string;
+  image: string;
+}
 
 interface Message {
   type: string;
@@ -10,23 +15,22 @@ interface Message {
 
 interface UseWebSocketReturn {
   messages: Message[];
-  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   sendMessage: (message: string) => void;
   clearMessages: () => void;
+  onlineUsers: User[];
 }
 
 const URL_WS = process.env.NEXT_PUBLIC_URL_WS || 'ws://localhost:4000/api/ws';
 
 export const useWebSocket = (email: string, name: string, image: string): UseWebSocketReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error' >('disconnected');
+  const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
 
   const ws = useRef<WebSocket | null>(null);
   const reconnectTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
   const connect = useCallback(() => {
     try {
-      setConnectionStatus('connecting');
       ws.current = new WebSocket(URL_WS);
 
       // cuando se conecta un nuevo usuario
@@ -35,14 +39,31 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
           type: 'join',
           data: { email, name, image }
         }))
-        setConnectionStatus('connected');
       };
 
       // cuando recibe un mensaje del servidor ws
       ws.current.onmessage = (event) => {
         try {
-          const data: Message = JSON.parse(event.data);
-          setMessages(prev => [...prev, data]);
+          const messageData = JSON.parse(event.data.toString());
+          
+          if(messageData.type === 'onlineUsers' && messageData.data instanceof Array){
+            const onlineUsers: User[] = messageData.data;
+            
+            // Crear un Map para deduplicación más eficiente
+            const uniqueUsersMap = new Map<string, User>();
+            
+            onlineUsers.forEach(user => {
+              // Solo agregar si no es el usuario actual
+              if (user.email !== email) {
+                uniqueUsersMap.set(user.email, user);
+              }
+            });
+            
+            // Convertir Map a array
+            const filteredUsers = Array.from(uniqueUsersMap.values());
+            setOnlineUsers(filteredUsers);
+          }
+
         } catch (error) {
           console.error('❌ Error al parsear mensaje:', error);
         }
@@ -51,7 +72,6 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
       // cuando se cierra la conexión
       ws.current.onclose = () => {
         console.log('🔌 Conexión cerrada');
-        setConnectionStatus('disconnected');
 
         // Reconectar automáticamente en 3 segundos
         reconnectTimeoutId.current = setTimeout(() => {
@@ -61,12 +81,10 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
 
       ws.current.onerror = (error) => {
         console.error('❌ Error WebSocket:', error);
-        setConnectionStatus('error');
       };
 
     } catch (error) {
       console.error('❌ Error al conectar:', error);
-      setConnectionStatus('error');
     }
   }, [URL_WS]);
 
@@ -107,5 +125,5 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
     };
   }, [connect]);
 
-  return { messages, connectionStatus, sendMessage, clearMessages };
+  return { messages, sendMessage, clearMessages, onlineUsers };
 };
