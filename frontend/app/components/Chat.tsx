@@ -2,14 +2,21 @@
 
 import { useWebSocket } from '@/app/hooks/useWebSocket';
 import { useState } from 'react';
+import Image from 'next/image';
 
-export function Chat({ email, name, image }: { email: string; name: string; image: string  }) {
+interface UserProps {
+  email: string;
+  name: string;
+  image: string;
+}
+
+export function Chat({ email, name, image }: UserProps) {
   const [inputMsg, setInputMsg] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserProps | null>(null);
+
   const {
-    messages,
-    clearMessages,
     sendMessage,
-    connectionStatus
+    onlineUsers
   } = useWebSocket(email, name, image);
 
   // para enviar el mensaje
@@ -21,136 +28,173 @@ export function Chat({ email, name, image }: { email: string; name: string; imag
     }
   };
 
-  const getStatusStyles = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'connecting':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'error':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'disconnected':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getStatusText = () => {
-    switch (connectionStatus) {
-      case 'connected': return '🟢 Conectado';
-      case 'connecting': return '🟡 Conectando...';
-      case 'error': return '🔴 Error de conexión';
-      case 'disconnected': return '⚫ Desconectado';
-      default: return '⚫ Desconectado';
-    }
+  const handleSelectUser = (user: UserProps) => {
+    setSelectedUser(user);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-purple-900 p-4">
-      <div className="max-w-4xl mx-auto h-screen flex flex-col">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-t-2xl shadow-lg border border-gray-200/50 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xl">💬</span>
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Chat en Tiempo Real
-              </h1>
-            </div>
-            <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusStyles()}`}>
-              {getStatusText()}
-            </div>
+    <div className="flex w-full h-[calc(100vh-64px)] bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Online Users Sidebar */}
+      <div className="w-80 h-full bg-gradient-to-b from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-r border-slate-700/50 shadow-2xl">
+        {/* Sidebar Header */}
+        <div className="p-6 border-b border-slate-700/50">
+          <div className="flex items-center space-x-3">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
+            <h2 className="text-lg font-semibold text-white">
+              Usuarios Online ({onlineUsers.length})
+            </h2>
           </div>
         </div>
 
-        {/* Chat Container */}
-        <div className="flex-1 bg-white/60 backdrop-blur-sm border-x border-gray-200/50 flex flex-col overflow-hidden">
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-3xl">💭</span>
-                </div>
-                <p className="text-gray-500 text-lg font-medium">No hay mensajes aún</p>
-                <p className="text-gray-400 text-sm mt-2">¡Envía tu primer mensaje para comenzar!</p>
+        {/* Users List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {onlineUsers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">👥</span>
               </div>
-            ) : (
-              messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`flex ${msg.user === 'Tú' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${msg.user === 'Tú'
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-l-2xl rounded-tr-2xl'
-                      : 'bg-white border border-gray-200 text-gray-800 rounded-r-2xl rounded-tl-2xl shadow-sm'
-                    } p-4`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className={`text-xs font-semibold ${msg.user === 'Tú' ? 'text-blue-100' : 'text-gray-600'
-                        }`}>
-                        {msg.user || 'Servidor'}
-                      </span>
-                      <span className={`text-xs ${msg.user === 'Tú' ? 'text-blue-200' : 'text-gray-500'
-                        }`}>
-                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        }) : ''}
-                      </span>
-                    </div>
-                    <div className="text-sm leading-relaxed">{msg.message}</div>
+              <p className="text-slate-400 text-sm">No hay otros usuarios conectados</p>
+            </div>
+          ) : (
+            onlineUsers.map((user, index) => (
+              <button
+                key={index}
+                className="group flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-slate-700/50 to-slate-800/50 hover:from-purple-600/20 hover:to-blue-600/20 transition-all duration-300 border border-slate-600/30 hover:border-purple-500/50 cursor-pointer transform hover:scale-[1.02]"
+                onClick={() => handleSelectUser(user)}
+              >
+                <div className="relative">
+                  <Image
+                    src={user.image}
+                    alt={user.name}
+                    width={40}
+                    height={40}
+                    className="w-10 h-10 rounded-full ring-2 ring-slate-600 group-hover:ring-purple-400 transition-all duration-300"
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800 shadow-lg"></div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white font-medium text-sm truncate group-hover:text-purple-200 transition-colors">
+                    {user.name}
+                  </p>
+                  <p className="text-slate-400 text-xs truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex-1 h-full flex flex-col">
+        {
+          selectedUser ? (
+
+            <section className="flex-1 flex flex-col bg-gradient-to-b from-slate-900 to-slate-950 relative overflow-hidden">
+              {/* Decorative Background */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100/20 via-transparent to-blue-100/20"></div>
+              
+              {/* Chat Header */}
+              <header className="bg-gradient-to-r from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-b border-slate-700/50 shadow-xl relative z-10">
+                <div className="flex items-center space-x-4 p-6">
+                  <div className="relative">
+                    <Image
+                      src={selectedUser.image}
+                      alt={selectedUser.name}
+                      width={48}
+                      height={48}
+                      className="w-12 h-12 rounded-full ring-2 ring-purple-400 shadow-lg"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-slate-800 shadow-lg animate-pulse"></div>
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-white mb-1">
+                      {selectedUser.name}
+                    </h2>
+                    <p className="text-slate-400 text-sm">
+                      {selectedUser.email}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
+                    <span className="text-green-400 text-sm font-medium">En línea</span>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              </header>
 
-          {/* Message Input Form */}
-          <div className="p-6 border-t border-gray-200/50 bg-white/40">
-            <form onSubmit={handleSendMessage} className="flex space-x-3">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={inputMsg}
-                  onChange={(e) => setInputMsg(e.target.value)}
-                  placeholder="Escribe tu mensaje..."
-                  disabled={connectionStatus !== 'connected'}
-                  className="w-full px-4 py-3 text-gray-800 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={connectionStatus !== 'connected' || !inputMsg.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
-              >
-                <span className="flex items-center space-x-2">
-                  <span>Enviar</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              {/* Chat Messages Area */}
+              <main className='flex-1 overflow-y-auto relative z-10'>
+                <div className="p-6">
+                  <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                    <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mb-6 shadow-xl">
+                      <span className="text-3xl">💬</span>
+                    </div>
+                    <h3 className="text-slate-600 text-lg font-semibold mb-2">
+                      Conversación con {selectedUser.name}
+                    </h3>
+                    <p className="text-slate-500 text-sm max-w-md">
+                      Envía tu primer mensaje para comenzar la conversación
+                    </p>
+                  </div>
+                </div>
+              </main>
+
+              {/* Message Input Footer */}
+              <footer className="bg-gradient-to-r from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-t border-slate-700/50 shadow-xl relative z-10">
+                <div className="p-6">
+                  <form onSubmit={handleSendMessage} className="flex space-x-4">
+                    <div className="flex-1 relative">
+                      <input 
+                        type="text" 
+                        value={inputMsg} 
+                        onChange={(e) => setInputMsg(e.target.value)}
+                        placeholder={`Escribe un mensaje a ${selectedUser.name}...`}
+                        className="w-full px-6 py-4 text-slate-800 bg-white/95 backdrop-blur-sm border-2 border-slate-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500 transition-all duration-300 shadow-lg placeholder-slate-400 font-medium"
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      disabled={!inputMsg.trim()}
+                      className="px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-blue-600 focus:outline-none focus:ring-4 focus:ring-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95 disabled:transform-none"
+                    >
+                      <span className="flex items-center space-x-2">
+                        <span>Enviar</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </footer>
+            </section>
+
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950 relative overflow-hidden">
+              {/* Decorative Background */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-100/20 via-transparent to-blue-100/20"></div>
+              
+              <div className="text-center relative z-10">
+                <div className="w-32 h-32 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mb-8 shadow-2xl mx-auto">
+                  <span className="text-6xl">👋</span>
+                </div>
+                <h2 className="text-2xl font-bold text-slate-700 mb-4">
+                  ¡Bienvenido al Chat!
+                </h2>
+                <p className="text-slate-500 text-lg max-w-md mx-auto mb-6">
+                  Selecciona un usuario de la lista para comenzar una conversación
+                </p>
+                <div className="flex items-center justify-center space-x-2 text-slate-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8l-4 4 4 4m0 0l4-4-4-4m0 8h11a4 4 0 000-8H7" />
                   </svg>
-                </span>
-              </button>
-            </form>
-          </div>
-        </div>
-
-        {/* Actions Footer */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-b-2xl shadow-lg border border-gray-200/50 p-4">
-          <div className="flex justify-center">
-            <button
-              onClick={clearMessages}
-              className="px-4 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm font-medium"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              <span>Limpiar mensajes</span>
-            </button>
-          </div>
-        </div>
+                  <span className="text-sm font-medium">Elige un contacto para empezar</span>
+                </div>
+              </div>
+            </div>
+          )
+        }
       </div>
     </div>
   )
