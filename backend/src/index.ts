@@ -31,6 +31,13 @@ interface JoinMessageData {
   image: string;
 }
 
+interface NewMessageData {
+  message: string;
+  receiver: string;
+  sender: string;
+  timestamp: string;
+}
+
 const wss = new WebSocketServer({ server, path: '/api/ws' })
 
 function notifyOnlineUsers() {
@@ -91,7 +98,18 @@ wss.on('connection', (ws: UserWs, _req) => {
         }
       }
 
-      // Aquí puedes agregar otros tipos de mensajes (chat, etc.)
+      if(message.type === 'newMessage' && message.data instanceof Object){
+        const messageData = message.data as NewMessageData;
+        
+        [...wss.clients].forEach((c: UserWs) => {
+          if(c.email === messageData.receiver){
+            c.send(JSON.stringify({
+              type: 'newMessage',
+              data: messageData
+            }))
+          }
+        })
+      }
       
     } catch (error) {
       console.error('❌ Error al procesar mensaje:', error);
