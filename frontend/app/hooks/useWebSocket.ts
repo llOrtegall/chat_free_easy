@@ -7,15 +7,15 @@ interface User {
 }
 
 interface Message {
-  type: string;
   message: string;
-  timestamp?: string;
-  user?: string;
+  receiver: string;
+  sender: string;
+  timestamp: string;
 }
 
 interface UseWebSocketReturn {
   messages: Message[];
-  sendMessage: (message: string) => void;
+  sendMessage: (message: string, receiver: string) => void;
   clearMessages: () => void;
   onlineUsers: User[];
 }
@@ -45,23 +45,28 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
       ws.current.onmessage = (event) => {
         try {
           const messageData = JSON.parse(event.data.toString());
-          
-          if(messageData.type === 'onlineUsers' && messageData.data instanceof Array){
+
+          if (messageData.type === 'onlineUsers' && messageData.data instanceof Array) {
             const onlineUsers: User[] = messageData.data;
-            
+
             // Crear un Map para deduplicación más eficiente
             const uniqueUsersMap = new Map<string, User>();
-            
+
             onlineUsers.forEach(user => {
               // Solo agregar si no es el usuario actual
               if (user.email !== email) {
                 uniqueUsersMap.set(user.email, user);
               }
             });
-            
+
             // Convertir Map a array
             const filteredUsers = Array.from(uniqueUsersMap.values());
             setOnlineUsers(filteredUsers);
+          }
+
+          if(messageData.type === 'newMessage' && messageData.data instanceof Object){
+            const message = messageData.data as Message;
+            setMessages(prev => [...prev, message]);
           }
 
         } catch (error) {
@@ -88,23 +93,21 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
     }
   }, [URL_WS]);
 
-  const sendMessage = useCallback((message: string) => {
+  const sendMessage = useCallback((message: string, receiver: string) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       const messageData = {
-        text: message,
-        user: 'React Client',
-        timestamp: new Date().toISOString()
+        type: 'newMessage',
+        data: {
+          message,
+          receiver,
+          sender: email,
+          timestamp: new Date().toISOString()
+        }
       };
 
       ws.current.send(JSON.stringify(messageData));
 
-      // Agregar mensaje propio a la lista
-      setMessages(prev => [...prev, {
-        type: 'sent',
-        message: message,
-        timestamp: messageData.timestamp,
-        user: 'Tú'
-      }]);
+      setMessages(prev => [...prev, messageData.data]);
     }
   }, []);
 
