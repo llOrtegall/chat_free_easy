@@ -16,14 +16,16 @@ export function Chat({ email, name, image }: UserProps) {
 
   const {
     sendMessage,
-    onlineUsers
+    onlineUsers,
+    messages,
   } = useWebSocket(email, name, image);
 
   // para enviar el mensaje
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputMsg.trim()) {
-      sendMessage(inputMsg);
+    console.log(inputMsg);
+    if (inputMsg.trim() && selectedUser) {
+      sendMessage(inputMsg, selectedUser.email);
       setInputMsg('');
     }
   };
@@ -126,17 +128,76 @@ export function Chat({ email, name, image }: UserProps) {
               {/* Chat Messages Area */}
               <main className='flex-1 overflow-y-auto relative z-10'>
                 <div className="p-6">
-                  <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                    <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mb-6 shadow-xl">
-                      <span className="text-3xl">💬</span>
+                  {
+                    messages.length > 0 
+                    ? (
+                      <div className="space-y-4">
+                        {messages.map((message, index) => {
+                          const isOwnMessage = message.sender === email;
+                          return (
+                            <div
+                              key={index}
+                              className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} animate-fade-in`}
+                            >
+                              <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${
+                                isOwnMessage
+                                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-l-3xl rounded-tr-3xl shadow-xl shadow-purple-500/25'
+                                  : 'bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-800 rounded-r-3xl rounded-tl-3xl shadow-xl shadow-slate-200/50'
+                              } p-4 transform hover:scale-[1.02] transition-all duration-200`}>
+                                
+                                {/* Message Header */}
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className={`text-xs font-bold uppercase tracking-wide ${
+                                    isOwnMessage ? 'text-purple-100' : 'text-slate-600'
+                                  }`}>
+                                    {isOwnMessage ? 'Tú' : message.sender}
+                                  </span>
+                                  <span className={`text-xs ${
+                                    isOwnMessage ? 'text-purple-200' : 'text-slate-500'
+                                  }`}>
+                                    {new Date(message.timestamp).toLocaleTimeString('es-ES', {
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </span>
+                                </div>
+                                
+                                {/* Message Content */}
+                                <div className="text-sm leading-relaxed font-medium break-words">
+                                  {message.message}
+                                </div>
+                                
+                                {/* Message Status Indicator for own messages */}
+                                {isOwnMessage && (
+                                  <div className="flex justify-end mt-2">
+                                    <div className="flex items-center space-x-1">
+                                      <svg className="w-3 h-3 text-purple-200" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                      <span className="text-xs text-purple-200">Enviado</span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
+                    : (
+                      <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                      <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mb-6 shadow-xl">
+                        <span className="text-3xl">💬</span>
+                      </div>
+                      <h3 className="text-slate-600 text-lg font-semibold mb-2">
+                        Conversación con {selectedUser.name}
+                      </h3>
+                      <p className="text-slate-500 text-sm max-w-md">
+                        Envía tu primer mensaje para comenzar la conversación
+                      </p>
                     </div>
-                    <h3 className="text-slate-600 text-lg font-semibold mb-2">
-                      Conversación con {selectedUser.name}
-                    </h3>
-                    <p className="text-slate-500 text-sm max-w-md">
-                      Envía tu primer mensaje para comenzar la conversación
-                    </p>
-                  </div>
+                    )
+                  }
                 </div>
               </main>
 
