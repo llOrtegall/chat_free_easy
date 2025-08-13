@@ -91,7 +91,7 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
     } catch (error) {
       console.error('❌ Error al conectar:', error);
     }
-  }, [URL_WS]);
+  }, [email, name, image]);
 
   const sendMessage = useCallback((message: string, receiver: string) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
@@ -109,7 +109,7 @@ export const useWebSocket = (email: string, name: string, image: string): UseWeb
 
       setMessages(prev => [...prev, messageData.data]);
     }
-  }, []);
+  }, [email]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
