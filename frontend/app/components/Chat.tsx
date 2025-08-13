@@ -150,7 +150,7 @@ export function Chat({ email, name, image }: UserProps) {
                                   <span className={`text-xs font-bold uppercase tracking-wide ${
                                     isOwnMessage ? 'text-purple-100' : 'text-slate-600'
                                   }`}>
-                                    {isOwnMessage ? 'Tú' : message.sender}
+                                    {isOwnMessage ? 'Tú' : selectedUser.name}
                                   </span>
                                   <span className={`text-xs ${
                                     isOwnMessage ? 'text-purple-200' : 'text-slate-500'
