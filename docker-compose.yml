@@ -24,8 +24,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
-    networks:
-      - chat-network
 
   backend:
     build:
@@ -36,10 +34,4 @@ services:
       - "4000:4000"
     environment:
       - PORT=4000
-    restart: unless-stopped 
-    networks:
-      - chat-network
-
-networks:
-  chat-network:
-    driver: bridge
+    restart: unless-stopped
