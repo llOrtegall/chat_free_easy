@@ -1,13 +1,22 @@
+# Backend Dockerfile
 FROM node:22.19-alpine
 
 WORKDIR /app
 
-COPY package*.json .
+# Instalar dependencias
+COPY package*.json ./
+RUN npm install --no-audit --no-fund
 
-RUN npm install
+# Copiar config de TypeScript y el código fuente
+COPY tsconfig.json ./
+COPY src ./src
 
-COPY . .
+# Compilar a dist/
+RUN npm run build
 
-EXPOSE 5000
+# Ajustes de runtime
+ENV NODE_ENV=production
+EXPOSE 4000
 
-CMD ["npm", "run", "start"]
+# Ejecutar el artefacto compilado
+CMD ["node", "./dist/index.js"]
