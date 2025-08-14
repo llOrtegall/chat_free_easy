@@ -1,5 +1,5 @@
 # Dockerfile para Next.js 15 - Multi-stage build optimizado
-FROM node:22-alpine AS base
+FROM node:22.19-alpine AS base
 
 # Instalar dependencias necesarias
 RUN apk add --no-cache libc6-compat
@@ -10,14 +10,15 @@ COPY package.json package-lock.json* ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Stage para dependencias de desarrollo
-FROM node:20-alpine AS deps
+FROM node:22.19-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+# Usar npm ci si hay lockfile; si no, fallback a npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
 
 # Stage para build
-FROM node:20-alpine AS builder
+FROM node:22.19-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -30,7 +31,7 @@ ENV NODE_ENV=production
 RUN npm run build
 
 # Stage final para producción
-FROM node:20-alpine AS runner
+FROM node:22.19-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
