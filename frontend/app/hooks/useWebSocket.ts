@@ -20,7 +20,12 @@ interface UseWebSocketReturn {
   onlineUsers: User[];
 }
 
-const URL_WS = process.env.NEXT_PUBLIC_URL_WS || 'ws://localhost:4000/api/ws';
+const DEFAULT_WS_URL =
+  typeof window !== 'undefined'
+    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}/api/ws`
+    : 'ws://localhost:4000/api/ws';
+
+const URL_WS = process.env.NEXT_PUBLIC_WS_URL || DEFAULT_WS_URL;
 
 export const useWebSocket = (email: string, name: string, image: string): UseWebSocketReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
