@@ -1,14 +1,9 @@
 'use client';
 
 import { useWebSocket } from '@/app/hooks/useWebSocket';
+import { UserProps } from '@/interfaces/User';
 import { useState } from 'react';
 import Image from 'next/image';
-
-interface UserProps {
-  email: string;
-  name: string;
-  image: string;
-}
 
 export function Chat({ email, name, image }: UserProps) {
   const [inputMsg, setInputMsg] = useState('');
@@ -35,11 +30,11 @@ export function Chat({ email, name, image }: UserProps) {
   };
 
   return (
-    <div className="flex w-full h-[calc(100vh-64px)] bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Online Users Sidebar */}
+    <div className="flex h-[calc(100vh-4rem)]">
+
       <div className="w-80 h-full bg-gradient-to-b from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-r border-slate-700/50 shadow-2xl">
-        {/* Sidebar Header */}
-        <div className="p-6 border-b border-slate-700/50">
+        
+        <div className="p-2 border-b border-slate-700/50">
           <div className="flex items-center space-x-3">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
             <h2 className="text-lg font-semibold text-white">
@@ -48,7 +43,6 @@ export function Chat({ email, name, image }: UserProps) {
           </div>
         </div>
 
-        {/* Users List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {onlineUsers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -61,7 +55,7 @@ export function Chat({ email, name, image }: UserProps) {
             onlineUsers.map((user, index) => (
               <button
                 key={index}
-                className="group flex items-center space-x-3 p-3 rounded-xl bg-gradient-to-r from-slate-700/50 to-slate-800/50 hover:from-purple-600/20 hover:to-blue-600/20 transition-all duration-300 border border-slate-600/30 hover:border-purple-500/50 cursor-pointer transform hover:scale-[1.02]"
+                className="w-full group flex space-x-3 p-3 rounded-xl bg-gradient-to-r from-slate-700/50 to-slate-800/50 hover:from-purple-600/20 hover:to-blue-600/20 transition-all duration-300 border border-slate-600/30 hover:border-purple-500/50 cursor-pointer transform hover:scale-[1.02]"
                 onClick={() => handleSelectUser(user)}
               >
                 <div className="relative">
@@ -88,7 +82,6 @@ export function Chat({ email, name, image }: UserProps) {
         </div>
       </div>
 
-      {/* Chat Area */}
       <div className="flex-1 h-full flex flex-col">
         {
           selectedUser ? (
