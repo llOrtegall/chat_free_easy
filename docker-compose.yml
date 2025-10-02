@@ -3,7 +3,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: chat-free-easy-frontend
+    container_name: chat-frontend
 #    ports:
 #      - "3000:3000"
     environment:
@@ -31,7 +31,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: chat-free-easy-backend
+    container_name: chat-backend
 #    ports:
 #      - "4000:4000"
     environment:
