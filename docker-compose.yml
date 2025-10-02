@@ -4,8 +4,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: chat-free-easy-frontend
-    ports:
-      - "3000:3000"
+#    ports:
+#      - "3000:3000"
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
@@ -24,14 +24,22 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - nginx-proxy
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: chat-free-easy-backend
-    ports:
-      - "4000:4000"
+#    ports:
+#      - "4000:4000"
     environment:
       - PORT=4000
     restart: unless-stopped
+    networks:
+      - nginx-proxy
+
+networks:
+  nginx-proxy:
+    external: true
